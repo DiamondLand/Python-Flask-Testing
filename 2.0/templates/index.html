@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!DOCTYPE html>
+<html>
+<head>
+    <title>Форум</title>
+    <link rel="stylesheet" type="text/css" href="../static/style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Функция для загрузки сообщений через AJAX
+        function loadMessages() {
+            $.ajax({
+                url: '/get_messages',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var messages = data.messages;
+                    var messagesList = $('#messages-list');
+                    messagesList.empty();
+
+                    for (var i = 0; i < messages.length; i++) {
+                        var message = messages[i];
+                        var messageItem = '<li>' +
+                            '<strong>' + message[1] + '</strong> написал(-а):' +
+                            '<p>' + message[2] + '</p>' +
+                            '<form action="/delete/' + message[0] + '" method="POST">' +
+                            '<button type="submit">Удалить</button>' +
+                            '</form>' +
+                            '</li>';
+                        messagesList.append(messageItem);
+                    }
+
+                    // Обновление сообщений сразу же после получения нового сообщения
+                    loadMessages();
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            // Восстановление никнейма пользователя из локального хранилища
+            var storedAuthor = localStorage.getItem('author');
+            if (storedAuthor) {
+                $('input[name="author"]').val(storedAuthor);
+            }
+
+            // Загрузка сообщений при загрузке страницы
+            loadMessages();
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>ОТПРАВКА</h1>
+        <form action="/" method="POST">
+            <input type="text" name="author" placeholder="Автор" required>
+            <br>
+            <textarea name="content" placeholder="Сообщение" required></textarea>
+            <br>
+            <button type="submit">Отправить</button>
+        </form>
+        <hr>
+        <h2>СООБЩЕНИЯ</h2>
+        <ul id="messages-list">
+            {% for message in messages %}
+                <li>
+                    <strong>{{ message[1] }}</strong> написал(-а):
+                    <p>{{ message[2] }}</p>
+                    <form action="/delete/{{ message[0] }}" method="POST">
+                        <button type="submit">Удалить</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
